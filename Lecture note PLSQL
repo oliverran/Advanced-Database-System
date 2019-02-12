@@ -1,0 +1,92 @@
+【PL/SQL】
+definition:
+PL/SQL是由ORACLE开发的，专门用于ORACLE的编程语言。
+PL代表 Procedural Language；
+SQL代表Structured Query Language；
+PL/SQL是Oracle数据库对SQL语句的扩展，增加了编程语言的特点；
+PL/SQL 包含过程化语句和SQL语句数据操作和查询语句被包含在PL/SQL代码的程序单元中（PL/SQL块）,经过逻辑判断、循环等操作完成复杂的功能或者计算。
+
+PL/SQL 块的类型
+
+1.匿名块：一般在要运行的应用中说明，运行时传递给PL/SQL引擎处理，只能执行一次，不能被存储在数据库中。
+
+2.过程，包和函数：
+
+3.TRRIGER 触发器：是命名的PL/SQL块，被存储在数据库中，能够被多次执行，当相应的触发事件发生时自动被执行；
+PL、SQL块的组成
+PL/SQL语言以块为单位，块中可以嵌套子块。
+
+一个基本的PL/SQL由三部分组成
+
+（1） 定义部分 declare  PL/SQL中使用的变量、常量、游标和异常处理的名字都必须先定义后使用。并且必须定义在以DECLARE关键字开头的定义部分。
+
+（2) 可执行部分 BEGIN PL/SQL块的主体，包含该块的可执行语句。该部分定义了块的功能，是必须的。 由关键字BEGIN开始，以END结束。
+
+（3） 异常处理部分 EXCEPTION 该部分包含块的异常处理程序（错误处理程序）。当该块程序体中的某个语句出现异常（检测到一个错误）时，
+  oracle将程序控制转到异常部分的相应的异常处理程序中进行进一步的处理。该部分由关键字EXCEPTION开始，END关键字结束。
+
+>>  PL/SQL 语法
+
+declare和exception都是可以省略的，但是END和BEGIN不能省略
+
+  [declare]
+          变量声明；
+          变量声明；
+      begin
+          DML/TCL操作；
+          DML/TCL操作;
+      [EXCEPTION]
+          例外处理；
+          例外处理；
+      end;
+      /
+      在PLSQL程序中：；号表示每条语句的结束，/表示整个PLSQL程序结束
+
+>> PLSQL与SQL执行有什么不同：
+（1）SQL是单条执行的
+（2）PLSQL是整体执行的，不能单条执行，整个PLSQL结束用/，其中每条语句结束用；号
+
+
+
+exp1:
+CREATE TYPE address_tyo AS OBJECT
+  street VARCHAR2(30),
+  cuty VARCHAR2(20),
+  state CHAR(2),
+  postal_code VARCHAR2(6);
+  /
+  注：可以看出与SQL的语法没有明显差异
+
+exp2:
+i   number(2);
+mysum     number(3): =100;
+msg     varchar2(12): ='结果是’;
+pename    emp.ename%type;
+emp_record    emp%rowtype;
+
+写一个PLSQL程序，输出"hello world"字符串，语法：dbms_output.put_line('需要输出的字符串');
+begin
+    --向SQLPLUS客户端工具输出字符串
+    dbms_output.put_line('hello 你好');
+end;
+/
+
+注意：
+dbms_output是oracle中的一个输出对象
+put_line是上述对象的一个方法，用于输出一个字符串自动换行
+
+设置显示PLSQL程序的执行结果，默认情况下，不显示PLSQL程序的执行结果，语法：set serveroutput on/off;
+set serveroutput on;
+
+使用基本类型变量,常量和注释，求10+100的和
+declare
+    --定义变量
+    mysum number(3) := 0;
+    tip varchar2(10) := '结果是';
+begin
+    /*业务算法*/
+    mysum := 10 + 100;
+    /*输出到控制器*/
+    dbms_output.put_line(tip || mysum);
+end;
+/

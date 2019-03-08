@@ -1,0 +1,117 @@
+/* Question1
+*/
+
+SELECT  e.name.title || '. ' || 
+	e.name.firstName || ' ' || 
+	e.name.surname || ' is living in ' || 
+	e.address.city
+AS 	"Employees: 'ar' and  Edinburgh"
+FROM 	employee e 
+WHERE 	INSTR(e.name.firstname,'ar')>0
+AND 	e.address.city = 'Edinburgh';
+
+/*question2
+*/
+SELECT    
+    a.branch_id.branch_id AS "Branch ID",
+    a.branch_id.city AS "Address",
+    count(a.acc_type) AS "Number of savingsaccounts"
+FROM 
+    account a
+WHERE
+    acc_type = 'saving'
+GROUP BY
+    a.acc_type, a.branch_id.city, a.branch_id.branch_id
+ORDER BY 
+    a.branch_id.branch_id ASC;
+    
+/*Question3
+*/
+ALTER TYPE person_type
+ADD MEMBER FUNCTION print_name RETURN STRING,
+ADD MEMBER FUNCTION print_address RETURN STRING CASCADE; 
+/
+
+CREATE OR REPLACE TYPE BODY person_type AS 
+MEMBER FUNCTION print_name RETURN STRING IS 
+    BEGIN
+        RETURN name.title || '. ' || name.firstname || ' ' || name.surname;
+    END print_name;
+    
+
+SELECT 
+        c.account_number.branch_id.branch_id AS branchID, 
+        c.cust_id.print_name() AS names, 
+        c.account_number.balance AS balance       
+    FROM ( 
+        SELECT 
+            c.account_number.branch_id.branch_id AS branch_id, 
+            c.account_number.acc_type AS acc_type, 
+            MAX (c.account_number.balance) AS max_balance
+            FROM 
+                customer_account c
+            WHERE 
+                c.account_number.acc_type = 'saving' 
+            GROUP BY c.account_number.branch_id.branch_id, c.account_number.acc_type
+        ) balance
+    JOIN customer_account c 
+    ON 
+        c.account_number.branch_id.branch_id = balance.branch_id
+    AND 
+        c.account_number.acc_type = balance.acc_type 
+    AND 
+        c.account_number.balance = balance.max_balance
+    LEFT JOIN customer_account t2
+    ON t2.cust_id.cust_id = c.cust_id.cust_ID
+    AND t2.account_number.acc_type = 'Basic';
+    
+/*Question4
+*/
+ALTER TYPE person_type
+ADD MEMBER FUNCTION print_name RETURN STRING,
+ADD MEMBER FUNCTION print_address RETURN STRING CASCADE; 
+/
+
+CREATE OR REPLACE TYPE BODY person_type AS 
+MEMBER FUNCTION print_name RETURN STRING IS 
+    BEGIN
+        RETURN name.title || '. ' || name.firstname || ' ' || name.surname;
+    END print_name;
+    
+    
+SELECT     
+    'Emp ID: ' || e.emp_id || ',  ' ||
+    e.print_name()   AS employee, 
+    c.account_number.account_number AS "Account Number",
+    e.supervisor_id.print_name() AS "Supervisor",
+    e.supervisor_id.position.job_title AS "Supervisor Job Title" 
+FROM 
+    employee e, customer_account c
+WHERE 
+    c.cust_id.name.firstname = e.name.firstname
+AND 
+    c.cust_id.name.surname = e.name.surname
+AND 
+    e.supervisor_id.position.job_title = 'Manager'
+ORDER BY 
+    e.emp_id ASC;
+    
+/*Question 5
+*/
+
+SELECT 
+    c.account_number.branch_id.branch_id AS branch_id, 
+    c.cust_id.print_name() AS full_name, 
+    c.account_number.limit_of_free_OD AS free_od
+    FROM ( 
+        SELECT c.account_number.branch_id.branch_id AS branch_id, 
+            MAX(c.account_number.limit_of_free_OD) AS maxOD
+            FROM customer_account c 
+            GROUP BY c.account_number.branch_id.branch_id
+        ) maxOD, customer_account c
+        WHERE c.account_number.limit_of_free_OD = maxOD.maxOD AND
+         c.account_number.branch_id.branch_id = maxOD.branch_id
+         ORDER BY c.account_number.branch_id.branch_id ASC;
+         
+ 
+    

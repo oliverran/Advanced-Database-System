@@ -36,7 +36,14 @@ CREATE OR REPLACE TYPE BODY person_type AS
 MEMBER FUNCTION print_name RETURN STRING IS 
     BEGIN
         RETURN name.title || '. ' || name.firstname || ' ' || name.surname;
-    END print_name;
+    END print_name; 
+
+MEMBER FUNCTION print_address RETURN STRING IS 
+    BEGIN
+        RETURN address.street || ', ' || address.city || ', ' || address.postcode;
+    END print_address; 
+END; 
+/ 
     
 
 SELECT 
@@ -67,16 +74,18 @@ SELECT
     
 /*Question4
 */
-ALTER TYPE person_type
-ADD MEMBER FUNCTION print_name RETURN STRING,
-ADD MEMBER FUNCTION print_address RETURN STRING CASCADE; 
-/
-
 CREATE OR REPLACE TYPE BODY person_type AS 
 MEMBER FUNCTION print_name RETURN STRING IS 
     BEGIN
         RETURN name.title || '. ' || name.firstname || ' ' || name.surname;
-    END print_name;
+    END print_name; 
+
+MEMBER FUNCTION print_address RETURN STRING IS 
+    BEGIN
+        RETURN address.street || ', ' || address.city || ', ' || address.postcode;
+    END print_address; 
+END; 
+/ 
     
     
 SELECT     

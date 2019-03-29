@@ -124,3 +124,16 @@ SELECT
          
  
     
+/*
+SELECT 
+    COUNT(e.print_name()) as number_of_employees,  
+    (SELECT e.supervisor_id.print_name() FROM employee e WHERE e.supervisor_id.name.Surname = 'Jones') AS supervisor_by_Mr_Smith
+    FROM employee e
+    WHERE
+        e.supervisor_id.name.surname = 'Smith'
+    AND
+        e.supervisor_id.name.Surname = 'Jones'
+        
+    GROUP BY e.supervisor_id.print_name() ;
+/
+*/

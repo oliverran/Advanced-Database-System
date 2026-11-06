@@ -165,4 +165,4 @@ python3 -m unittest discover -s examples/sqlite_bank -p 'test_*.py' -v
 python3 examples/sqlite_bank/tutorial.py --all
 ```
 
-The 21 tests check exact lesson results, the two wrong aggregation totals, constraints, query rejection and recovery, finite/infinite recursive queries, result and input limits, repeat navigation, EOF/Ctrl+C, and execution from another working directory without database-file creation. CI covers Python 3.10, 3.12, and 3.14. It does not run Oracle, access a database server, or validate the archived SQL.
+The 22 tests check exact lesson results, the two wrong aggregation totals, constraints, query rejection and recovery, finite/infinite recursive queries, CTE aggregation, result and input limits, repeat navigation, EOF/Ctrl+C, and execution from another working directory without database-file creation. CI covers Python 3.10, 3.12, and 3.14. It does not run Oracle, access a database server, or validate the archived SQL.

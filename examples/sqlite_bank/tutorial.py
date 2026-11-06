@@ -136,6 +136,11 @@ def _read_only(action, first, second, database, source):
     # SQLite may omit the database name for a table-only read (e.g. COUNT(*)).
     if action == sqlite3.SQLITE_READ and database in ("main", None) and first in TABLES:
         return sqlite3.SQLITE_OK
+    # CTE/derived-table COUNT(*) reads have no column or database name. No other
+    # tables can be attached or created in this isolated, read-only connection.
+    if (action == sqlite3.SQLITE_READ and database is None and second == ""
+            and first and not first.lower().startswith("sqlite_")):
+        return sqlite3.SQLITE_OK
     if action == sqlite3.SQLITE_FUNCTION and (second or "").lower() in FUNCTIONS:
         return sqlite3.SQLITE_OK
     return sqlite3.SQLITE_DENY
@@ -180,7 +185,11 @@ def run_query(connection: sqlite3.Connection, sql: str) -> Result:
     connection.set_progress_handler(budget, 1000)
     cursor = connection.cursor()
     try:
-        cursor.execute(sql)
+        try:
+            cursor.execute(sql)
+        except sqlite3.Warning as error:
+            # Python 3.10 reports multiple statements as Warning, not Error.
+            raise sqlite3.ProgrammingError(str(error)) from error
         if cursor.description is None:
             raise ValueError("Only queries returning rows are supported.")
         rows = tuple(cursor.fetchmany(MAX_ROWS + 1))

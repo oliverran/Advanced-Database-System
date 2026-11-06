@@ -62,7 +62,9 @@ class TutorialTests(unittest.TestCase):
             "PRAGMA query_only = OFF", "PRAGMA database_list", "VACUUM",
             "BEGIN", "SAVEPOINT example", "SELECT load_extension('not-a-library')",
             "SELECT randomblob(1000000000)", "SELECT readfile('private.txt')",
-            "SELECT * FROM sqlite_master",
+            "SELECT * FROM sqlite_master", "SELECT COUNT(*) FROM sqlite_master",
+            "SELECT COUNT(*) FROM SQLITE_SCHEMA", "SELECT * FROM pragma_database_list",
+            "SELECT * FROM pragma_table_info('account')", "SELECT * FROM dbstat",
         )
         for sql in statements:
             with self.subTest(sql=sql), self.assertRaises(sqlite3.Error):
@@ -99,6 +101,17 @@ class TutorialTests(unittest.TestCase):
                                     "(SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 3) "
                                     "SELECT x FROM n ORDER BY x").rows, ((1,), (2,), (3,)))
 
+    def test_count_over_cte_and_derived_tables(self):
+        queries = (
+            ("WITH n(x) AS (SELECT 1) SELECT COUNT(*) FROM n", 1),
+            ("WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 3) "
+             "SELECT COUNT(*) FROM n", 3),
+            ("SELECT COUNT(*) FROM (SELECT account_id FROM account)", 5),
+        )
+        for sql, count in queries:
+            with self.subTest(sql=sql):
+                self.assertEqual(self.query(sql).rows, ((count,),))
+
     def test_format_empty_and_null(self):
         self.assertIn("(0 rows)", tutorial.format_result(self.query("SELECT 1 WHERE 0")))
         self.assertIn("NULL", tutorial.format_result(self.query("SELECT NULL AS missing")))
@@ -108,7 +121,7 @@ class TutorialTests(unittest.TestCase):
             self.assertEqual(tutorial.run_query(other, tutorial.LESSONS[0].sql),
                              self.query(tutorial.LESSONS[0].sql))
             # Test-only inspection, after disabling the authorizer in this disposable DB.
-            other.set_authorizer(None)
+            other.set_authorizer(lambda *args: sqlite3.SQLITE_OK)
             self.assertEqual(other.execute("PRAGMA database_list").fetchall(), [(0, "main", "")])
             self.assertEqual(other.execute("PRAGMA foreign_keys").fetchone(), (1,))
             self.assertEqual(other.execute("PRAGMA query_only").fetchone(), (1,))
@@ -116,7 +129,7 @@ class TutorialTests(unittest.TestCase):
 
     def test_schema_enforces_relations_types_and_unique_ownership(self):
         # Test writes are confined to this test's fresh :memory: fixture.
-        self.connection.set_authorizer(None)
+        self.connection.set_authorizer(lambda *args: sqlite3.SQLITE_OK)
         self.connection.execute("PRAGMA query_only = OFF")
         bad_inserts = (
             "INSERT INTO account VALUES ('AX', 'missing', 'saving', 1)",
@@ -151,7 +164,7 @@ class InterfaceTests(unittest.TestCase):
         self.assertNotIn("[counts]", output)
 
     def test_cli_errors_are_nonzero(self):
-        for query in ("", "DROP TABLE account", "SELECT nope"):
+        for query in ("", "DROP TABLE account", "SELECT nope", "SELECT 1; SELECT 2;"):
             with self.subTest(query=query):
                 status, output = self.call(["--query", query])
                 self.assertEqual(status, 1)
@@ -159,7 +172,8 @@ class InterfaceTests(unittest.TestCase):
 
     def test_interactive_navigation_hints_errors_and_repeat(self):
         status, output = self.call(["--interactive"], [
-            "invalid", "1", "hint", "DROP TABLE account", "answer", "answer", "back",
+            "invalid", "1", "hint", "DROP TABLE account", "SELECT 1; SELECT 2;",
+            "answer", "answer", "back",
             "ownership", "SELECT SUM(balance_pence) AS total_pence FROM account", "quit",
         ])
         self.assertEqual(status, 0)
